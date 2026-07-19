@@ -17,7 +17,7 @@ public class ActionIndicatorClient implements ClientModInitializer {
             ActionIndicatorHud.tickShieldTargetScan(client);
         });
 
-        HudRenderCallback.EVENT.register((drawContext, tickDeltaManager) ->
-                ActionIndicatorHud.render(drawContext, tickDeltaManager.getTickDelta(true)));
+        HudRenderCallback.EVENT.register((drawContext, tickDelta) ->
+                ActionIndicatorHud.render(drawContext, tickDelta.getTickDelta(false)));
     }
 }
