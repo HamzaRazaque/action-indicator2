@@ -18,6 +18,6 @@ public class ActionIndicatorClient implements ClientModInitializer {
         });
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) ->
-                ActionIndicatorHud.render(drawContext, tickDelta.getTickDelta(false)));
+                ActionIndicatorHud.render(drawContext, tickDelta));
     }
 }
