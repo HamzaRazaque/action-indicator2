@@ -5,6 +5,7 @@ import com.actionindicator.state.ActionState;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.minecraft.util.profiling.inactive.InactiveProfiler;
 
 public class ActionIndicatorClient implements ClientModInitializer {
 
@@ -17,7 +18,7 @@ public class ActionIndicatorClient implements ClientModInitializer {
             ActionIndicatorHud.tickShieldTargetScan(client);
         });
 
-        HudRenderCallback.EVENT.register((drawContext, tickDelta) ->
-                ActionIndicatorHud.render(drawContext, tickDelta));
+        HudRenderCallback.EVENT.register((drawContext, tickCounter) ->
+                ActionIndicatorHud.render(drawContext, tickCounter.getGameTimeDeltaPartialTick(true)));
     }
 }
