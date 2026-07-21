@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.actionindicator.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "InGameHudMixin",
+    "ClientPlayerEntityMixin",
+    "ClientPlayNetworkHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
