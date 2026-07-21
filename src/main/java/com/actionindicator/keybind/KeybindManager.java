@@ -1,37 +1,34 @@
 package com.actionindicator.keybind;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.KeyMapping;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
-/**
- * Registers all mod keybindings via Fabric API.
- */
 public final class KeybindManager {
 
-    public static KeyMapping openMenu;
-    public static KeyMapping openWaypoints;
-    public static KeyMapping toggleHealth;
+    public static KeyBinding openMenu;
+    public static KeyBinding openWaypoints;
+    public static KeyBinding toggleHealth;
 
     public static void register() {
-        openMenu = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+        openMenu = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.action-indicator.menu",
-            InputConstants.Type.KEYSYM,
+            InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_Y,
             "category.action-indicator"
         ));
 
-        openWaypoints = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+        openWaypoints = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.action-indicator.waypoints",
-            InputConstants.Type.KEYSYM,
+            InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_U,
             "category.action-indicator"
         ));
 
-        toggleHealth = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+        toggleHealth = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.action-indicator.health",
-            InputConstants.Type.KEYSYM,
+            InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_H,
             "category.action-indicator"
         ));
