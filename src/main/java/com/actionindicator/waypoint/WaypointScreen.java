@@ -2,29 +2,17 @@ package com.actionindicator.waypoint;
 
 import com.actionindicator.state.WaypointData;
 import com.actionindicator.state.WaypointData.Waypoint;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.text.Text;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Waypoint menu screen — opened via keybind.
- * Lets the player:
- *   • Add a waypoint at their current position
- *   • Add a waypoint by typing X/Y/Z coordinates
- *   • See and delete existing waypoints
- */
 public class WaypointScreen extends Screen {
 
-    private EditBox nameBox, xBox, yBox, zBox;
-    private final List<Button> deleteButtons = new ArrayList<>();
+    private TextFieldWidget nameBox, xBox, yBox, zBox;
 
-    // Colour palette for auto-assigning waypoint colours
     private static final int[] COLORS = {
         0xFFFF5555, 0xFF55FF55, 0xFF5555FF,
         0xFFFFFF55, 0xFFFF55FF, 0xFF55FFFF,
@@ -33,146 +21,106 @@ public class WaypointScreen extends Screen {
     private static int colorIndex = 0;
 
     public WaypointScreen() {
-        super(Component.literal("Waypoints"));
+        super(Text.literal("Waypoints"));
     }
 
     @Override
     protected void init() {
-        deleteButtons.clear();
         int cx = width / 2;
-        int startY = 30;
+        int sy = 30;
 
-        // ── Name field ────────────────────────────────────────────────────────
-        nameBox = new EditBox(font, cx - 100, startY, 200, 20, Component.literal("Name"));
-        nameBox.setHint(Component.literal("Waypoint name..."));
-        addRenderableWidget(nameBox);
+        nameBox = new TextFieldWidget(textRenderer, cx - 100, sy, 200, 20, Text.literal("Name"));
+        nameBox.setPlaceholder(Text.literal("Waypoint name..."));
+        addDrawableChild(nameBox);
 
-        // ── Coordinate fields ─────────────────────────────────────────────────
-        xBox = new EditBox(font, cx - 100, startY + 25, 60, 20, Component.literal("X"));
-        xBox.setHint(Component.literal("X"));
-        addRenderableWidget(xBox);
+        xBox = new TextFieldWidget(textRenderer, cx - 100, sy + 25, 60, 20, Text.literal("X"));
+        xBox.setPlaceholder(Text.literal("X"));
+        addDrawableChild(xBox);
 
-        yBox = new EditBox(font, cx - 35, startY + 25, 60, 20, Component.literal("Y"));
-        yBox.setHint(Component.literal("Y"));
-        addRenderableWidget(yBox);
+        yBox = new TextFieldWidget(textRenderer, cx - 35, sy + 25, 60, 20, Text.literal("Y"));
+        yBox.setPlaceholder(Text.literal("Y"));
+        addDrawableChild(yBox);
 
-        zBox = new EditBox(font, cx + 30, startY + 25, 60, 20, Component.literal("Z"));
-        zBox.setHint(Component.literal("Z"));
-        addRenderableWidget(zBox);
+        zBox = new TextFieldWidget(textRenderer, cx + 30, sy + 25, 60, 20, Text.literal("Z"));
+        zBox.setPlaceholder(Text.literal("Z"));
+        addDrawableChild(zBox);
 
-        // ── Add at current position button ────────────────────────────────────
-        addRenderableWidget(Button.builder(
-            Component.literal("Add at My Position"),
-            btn -> addAtCurrentPosition()
-        ).pos(cx - 100, startY + 50).size(95, 20).build());
+        addDrawableChild(ButtonWidget.builder(
+            Text.literal("Add at My Position"),
+            btn -> addAtPosition()
+        ).dimensions(cx - 100, sy + 50, 95, 20).build());
 
-        // ── Add at typed coordinates button ───────────────────────────────────
-        addRenderableWidget(Button.builder(
-            Component.literal("Add at Coordinates"),
-            btn -> addAtCoordinates()
-        ).pos(cx + 5, startY + 50).size(95, 20).build());
+        addDrawableChild(ButtonWidget.builder(
+            Text.literal("Add at Coordinates"),
+            btn -> addAtCoords()
+        ).dimensions(cx + 5, sy + 50, 95, 20).build());
 
-        // ── Existing waypoints list with delete buttons ───────────────────────
-        int listY = startY + 85;
+        int listY = sy + 90;
         for (int i = 0; i < WaypointData.waypoints.size(); i++) {
             final int idx = i;
-            Waypoint wp = WaypointData.waypoints.get(i);
-            Button del = Button.builder(
-                Component.literal("✕"),
-                btn -> {
-                    WaypointData.waypoints.remove(idx);
-                    rebuildScreen();
-                }
-            ).pos(cx + 105, listY + i * 16).size(16, 14).build();
-            addRenderableWidget(del);
-            deleteButtons.add(del);
+            addDrawableChild(ButtonWidget.builder(
+                Text.literal("X"),
+                btn -> { WaypointData.waypoints.remove(idx); rebuildScreen(); }
+            ).dimensions(cx + 105, listY + i * 16, 16, 14).build());
         }
 
-        // ── Close button ──────────────────────────────────────────────────────
-        addRenderableWidget(Button.builder(
-            Component.literal("Close"),
-            btn -> onClose()
-        ).pos(cx - 40, height - 30).size(80, 20).build());
+        addDrawableChild(ButtonWidget.builder(
+            Text.literal("Close"),
+            btn -> close()
+        ).dimensions(cx - 40, height - 28, 80, 20).build());
     }
 
-    private void addAtCurrentPosition() {
-        Minecraft client = Minecraft.getInstance();
-        if (client.player == null) return;
-
-        String name = nameBox.getValue().trim();
+    private void addAtPosition() {
+        MinecraftClient c = MinecraftClient.getInstance();
+        if (c.player == null) return;
+        String name = nameBox.getText().trim();
         if (name.isEmpty()) name = "Waypoint " + (WaypointData.waypoints.size() + 1);
-
-        double x = client.player.getX();
-        double y = client.player.getY();
-        double z = client.player.getZ();
-
-        WaypointData.waypoints.add(new Waypoint(name, x, y, z, nextColor()));
-        nameBox.setValue("");
+        WaypointData.waypoints.add(new Waypoint(name, c.player.getX(), c.player.getY(), c.player.getZ(), nextColor()));
+        nameBox.setText("");
         rebuildScreen();
     }
 
-    private void addAtCoordinates() {
-        String name = nameBox.getValue().trim();
+    private void addAtCoords() {
+        String name = nameBox.getText().trim();
         if (name.isEmpty()) name = "Waypoint " + (WaypointData.waypoints.size() + 1);
-
         try {
-            double x = Double.parseDouble(xBox.getValue().trim());
-            double y = Double.parseDouble(yBox.getValue().trim());
-            double z = Double.parseDouble(zBox.getValue().trim());
+            double x = Double.parseDouble(xBox.getText().trim());
+            double y = Double.parseDouble(yBox.getText().trim());
+            double z = Double.parseDouble(zBox.getText().trim());
             WaypointData.waypoints.add(new Waypoint(name, x, y, z, nextColor()));
-            nameBox.setValue("");
-            xBox.setValue("");
-            yBox.setValue("");
-            zBox.setValue("");
+            nameBox.setText(""); xBox.setText(""); yBox.setText(""); zBox.setText("");
             rebuildScreen();
-        } catch (NumberFormatException e) {
-            // Invalid coords — flash the boxes red by doing nothing (user sees empty/bad input)
-        }
+        } catch (NumberFormatException ignored) {}
     }
 
-    private void rebuildScreen() {
-        clearWidgets();
-        init();
-    }
+    private void rebuildScreen() { clearChildren(); init(); }
 
     private static int nextColor() {
-        int c = COLORS[colorIndex % COLORS.length];
-        colorIndex++;
-        return c;
+        return COLORS[(colorIndex++) % COLORS.length];
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        renderBackground(graphics, mouseX, mouseY, delta);
-
+    public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
+        renderBackground(ctx, mouseX, mouseY, delta);
         int cx = width / 2;
 
-        // Title
-        graphics.drawCenteredString(font, "§b§lWaypoints", cx, 10, 0xFFFFFFFF);
+        ctx.drawCenteredTextWithShadow(textRenderer, "Waypoints", cx, 10, 0xFF55FFFF);
+        ctx.drawText(textRenderer, "Name & Coords", cx - 100, 76, 0xFFAAAAAA, false);
 
-        // Column headers
-        graphics.drawString(font, "§7Name", cx - 100, 78, 0xFFAAAAAA, false);
-        graphics.drawString(font, "§7Coordinates", cx - 10, 78, 0xFFAAAAAA, false);
-
-        // Waypoint list
-        int listY = 115;
+        int listY = 120;
         for (int i = 0; i < WaypointData.waypoints.size(); i++) {
             Waypoint wp = WaypointData.waypoints.get(i);
-            String entry = wp.toShortString();
-            // Background
-            graphics.fill(cx - 105, listY + i * 16 - 1, cx + 105, listY + i * 16 + 10, 0x44000000);
-            graphics.drawString(font, entry, cx - 103, listY + i * 16, wp.color, false);
+            ctx.fill(cx - 108, listY + i * 16 - 1, cx + 108, listY + i * 16 + 10, 0x44000000);
+            ctx.drawText(textRenderer, wp.toShortString(), cx - 106, listY + i * 16, wp.color, false);
         }
 
         if (WaypointData.waypoints.isEmpty()) {
-            graphics.drawCenteredString(font, "§7No waypoints yet", cx, listY, 0xFFAAAAAA);
+            ctx.drawCenteredTextWithShadow(textRenderer, "No waypoints yet", cx, listY, 0xFFAAAAAA);
         }
 
-        super.render(graphics, mouseX, mouseY, delta);
+        super.render(ctx, mouseX, mouseY, delta);
     }
 
     @Override
-    public boolean isPauseScreen() {
-        return false; // keep game running while menu is open
-    }
+    public boolean shouldPause() { return false; }
 }
