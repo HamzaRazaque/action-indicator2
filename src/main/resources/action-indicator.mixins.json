@@ -3,11 +3,7 @@
   "package": "com.actionindicator.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "InGameHudMixin",
-    "ClientPlayerEntityMixin",
-    "ClientPlayNetworkHandlerMixin"
+    "WorldRendererMixin"
   ],
-  "injectors": {
-    "defaultRequire": 1
-  }
+  "injectors": { "defaultRequire": 1 }
 }
