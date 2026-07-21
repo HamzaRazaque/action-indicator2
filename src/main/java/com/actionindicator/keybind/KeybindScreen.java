@@ -1,62 +1,50 @@
 package com.actionindicator.keybind;
 
 import com.actionindicator.waypoint.WaypointScreen;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.text.Text;
 
-/**
- * Keybind info / menu screen — opened via the main keybind (default: Y).
- * Shows all mod keybinds and lets the player open sub-menus.
- */
 public class KeybindScreen extends Screen {
 
     public KeybindScreen() {
-        super(Component.literal("Action Indicator — Menu"));
+        super(Text.literal("Action Indicator Menu"));
     }
 
     @Override
     protected void init() {
         int cx = width / 2;
-        int startY = height / 2 - 50;
+        int sy = height / 2 - 40;
 
-        // Open Waypoints screen
-        addRenderableWidget(Button.builder(
-            Component.literal("📍 Waypoints"),
-            btn -> Minecraft.getInstance().setScreen(new WaypointScreen())
-        ).pos(cx - 80, startY).size(160, 22).build());
+        addDrawableChild(ButtonWidget.builder(
+            Text.literal("Waypoints"),
+            btn -> client.setScreen(new WaypointScreen())
+        ).dimensions(cx - 80, sy, 160, 22).build());
 
-        // Close
-        addRenderableWidget(Button.builder(
-            Component.literal("Close  [Y]"),
-            btn -> onClose()
-        ).pos(cx - 80, startY + 80).size(160, 22).build());
+        addDrawableChild(ButtonWidget.builder(
+            Text.literal("Close  [Y]"),
+            btn -> close()
+        ).dimensions(cx - 80, sy + 60, 160, 22).build());
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        renderBackground(graphics, mouseX, mouseY, delta);
-
+    public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
+        renderBackground(ctx, mouseX, mouseY, delta);
         int cx = width / 2;
+        ctx.drawCenteredTextWithShadow(textRenderer, "Action Indicator", cx, height / 2 - 70, 0xFF55FFFF);
+        ctx.drawCenteredTextWithShadow(textRenderer, "v2.0", cx, height / 2 - 58, 0xFF888888);
 
-        graphics.drawCenteredString(font, "§b§lAction Indicator", cx, height / 2 - 80, 0xFFFFFFFF);
-        graphics.drawCenteredString(font, "§7Version 2.0", cx, height / 2 - 68, 0xFF888888);
+        int tx = cx - 100, ty = height / 2 - 15;
+        ctx.drawText(textRenderer, "Keybinds:", tx, ty, 0xFFFFFF55, false);
+        ctx.drawText(textRenderer, "[Y]  Open this menu", tx, ty + 12, 0xFFFFFFFF, false);
+        ctx.drawText(textRenderer, "[U]  Open Waypoints", tx, ty + 24, 0xFFFFFFFF, false);
+        ctx.drawText(textRenderer, "[H]  Toggle Health HUD", tx, ty + 36, 0xFFFFFFFF, false);
 
-        // Keybind reference table
-        int tx = cx - 120;
-        int ty = height / 2 - 20;
-        graphics.drawString(font, "§eKeybinds:", tx, ty, 0xFFFFFF55, false);
-        graphics.drawString(font, "§7[Y]  §fOpen this menu", tx, ty + 12, 0xFFFFFFFF, false);
-        graphics.drawString(font, "§7[U]  §fOpen Waypoints", tx, ty + 24, 0xFFFFFFFF, false);
-        graphics.drawString(font, "§7[H]  §fToggle health display", tx, ty + 36, 0xFFFFFFFF, false);
-
-        super.render(graphics, mouseX, mouseY, delta);
+        super.render(ctx, mouseX, mouseY, delta);
     }
 
     @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
+    public boolean shouldPause() { return false; }
 }
